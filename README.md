@@ -6,7 +6,7 @@
   ![Go Version](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go)
   ![Discord](https://img.shields.io/badge/Discord-API-5865F2?logo=discord)
   ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)
-  ![License](https://img.shields.io/badge/license-MIT-green.svg)
+  ![License](https://img.shields.io/badge/license-Propietario-red.svg)
   
   *Un bot de Discord profesional con sistema de moderación automática y dashboard web integrado.*
   
@@ -51,52 +51,104 @@
 ---
 
 ## 🏗️ Arquitectura
-
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           TERRA NOVA BOT                                    │
+│ TERRANOVA BOT │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────────┐ │
-│  │    Discord      │    │    WebSocket    │    │       Dashboard         │ │
-│  │    Gateway      │◄──►│     Server      │◄──►│      (HTTP/HTTPS)       │ │
-│  │   (API Real)    │    │   (Tiempo Real) │    │    Puerto 80/443        │ │
-│  └─────────────────┘    └─────────────────┘    └─────────────────────────┘ │
-│           │                     │                          │               │
-│           ▼                     ▼                          ▼               │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                       CORE SERVICES                                 │   │
-│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌────────────┐ │   │
-│  │  │   AutoMod    │ │   Logging    │ │   Commands   │ │  Security  │ │   │
-│  │  │              │ │              │ │              │ │            │ │   │
-│  │  │ • WordFilter │ │ • Rotación   │ │ • Slash      │ │ • Rate     │ │   │
-│  │  │ • AntiSpam   │ │   de logs    │ │   Commands   │ │   Limiting │ │   │
-│  │  │ • AntiLink   │ │ • Niveles    │ │ • Embeds     │ │ • Audit    │ │   │
-│  │  │ • AntiRaid   │ │   (DEBUG,    │ │ • Permisos   │ │   Logs     │ │   │
-│  │  │ • Warnings   │ │    INFO,     │ │              │ │            │ │   │
-│  │  │              │ │    ERROR)    │ │              │ │            │ │   │
-│  │  └──────────────┘ └──────────────┘ └──────────────┘ └────────────┘ │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                       PERSISTENCIA                                   │   │
-│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────────────────────┐ │   │
-│  │  │   SQLite     │ │  config.json │ │      blacklist.txt           │ │   │
-│  │  │  (Sorteos)   │ │ (AutoMod)    │ │    (Palabras prohibidas)     │ │   │
-│  │  └──────────────┘ └──────────────┘ └──────────────────────────────┘ │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
+│ │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────────────┐ │
+│ │ Discord │ │ WebSocket │ │ Dashboard │ │
+│ │ Gateway │◄──►│ Server │◄──►│ (HTTP/HTTPS) │ │
+│ │ (API Real) │ │ (Tiempo Real) │ │ Puerto 80/443 │ │
+│ └─────────────────┘ └─────────────────┘ └─────────────────────────┘ │
+│ │ │ │ │
+│ ▼ ▼ ▼ │
+│ ┌─────────────────────────────────────────────────────────────────────┐ │
+│ │ CORE SERVICES │ │
+│ │ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌────────────┐ │ │
+│ │ │ AutoMod │ │ Logging │ │ Commands │ │ Security │ │ │
+│ │ │ │ │ │ │ │ │ │ │ │
+│ │ │ • WordFilter │ │ • Rotación │ │ • Slash │ │ • Rate │ │ │
+│ │ │ • AntiSpam │ │ de logs │ │ Commands │ │ Limiting │ │ │
+│ │ │ • AntiLink │ │ • Niveles │ │ • Embeds │ │ • Audit │ │ │
+│ │ │ • AntiRaid │ │ (DEBUG, │ │ • Permisos │ │ Logs │ │ │
+│ │ │ • Warnings │ │ INFO, │ │ │ │ │ │ │
+│ │ │ │ │ ERROR) │ │ │ │ │ │ │
+│ │ └──────────────┘ └──────────────┘ └──────────────┘ └────────────┘ │ │
+│ └─────────────────────────────────────────────────────────────────────┘ │
+│ │
+│ ┌─────────────────────────────────────────────────────────────────────┐ │
+│ │ PERSISTENCIA │ │
+│ │ ┌──────────────┐ ┌──────────────┐ ┌──────────────────────────────┐ │ │
+│ │ │ SQLite │ │ config.json │ │ blacklist.txt │ │ │
+│ │ │ (Sorteos) │ │ (AutoMod) │ │ (Palabras prohibidas) │ │ │
+│ │ └──────────────┘ └──────────────┘ └──────────────────────────────┘ │ │
+│ └─────────────────────────────────────────────────────────────────────┘ │
+│ │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-                                    ▲
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         INFRAESTRUCTURA                                     │
-│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────────────┐│
-│  │   Docker     │ │    Nginx     │ │   Raspberry  │ │    Volúmenes         ││
-│  │  Container   │ │   Proxy SSL  │ │      Pi      │ │   (Persistencia)     ││
-│  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────────────┘│
-└─────────────────────────────────────────────────────────────────────────────┘
+text
+
+### 🔄 Flujo de Datos
+Mensaje en Discord ──► Discord Gateway
+│
+▼
+
+WebSocket Interno ◄──► AutoMod Service
+│
+├──► WordFilter ──► ¿Prohibido? ──► Eliminar
+├──► AntiSpam ──► ¿Spam? ──► Advertir
+├──► AntiLink ──► ¿Link? ──► Bloquear
+└──► AntiRaid ──► ¿Raid? ──► Kick/Ban
+│
+▼
+
+Logging Service ──► Guarda en RAM y Archivo
+│
+▼
+
+WebSocket Server ──► Envía logs al Dashboard
+│
+▼
+
+Dashboard (Browser) ◄──► Nginx (HTTPS) ◄──► API
+
+text
+
+### 📦 Estructura de Directorios
+Terranova/
+├── internal/
+│ ├── commands/ # Comandos Slash (ping, giveaway, vote, lofi)
+│ ├── events/ # Manejadores de eventos de Discord
+│ ├── services/
+│ │ ├── moderation/ # AutoMod (wordfilter, antispam, antilink, antiraid)
+│ │ ├── logging/ # Sistema de logs con WebSocket
+│ │ └── queue/ # Gestor de colas para rate limiting
+│ ├── db/ # Base de datos SQLite (sorteos)
+│ └── security/ # Auditoría y monitoreo
+├── web/
+│ ├── handlers/ # Endpoints API (automod, logs, stats)
+│ └── static/ # HTML, CSS, JS del dashboard
+├── nginx/
+│ └── conf/ # Configuración del proxy SSL
+├── logs/ # Archivos de logs rotativos
+└── docker-compose.yml # Orquestación de contenedores
+
+text
+
+### 🧩 Componentes Principales
+
+| Componente | Tecnología | Función |
+|------------|------------|---------|
+| **Bot Core** | Go + DiscordGo | Comunicación con Discord API |
+| **AutoMod** | Go | Moderación automática |
+| **Logging** | Go + WebSocket | Registro y transmisión de logs |
+| **Dashboard** | HTML/CSS/JS + Chart.js | Interfaz de administración |
+| **WebSocket Server** | Fiber + gorilla/websocket | Comunicación en tiempo real |
+| **Proxy SSL** | Nginx | Terminación HTTPS |
+| **Base de Datos** | SQLite | Persistencia de sorteos |
+| **Contenedor** | Docker + Docker Compose | Despliegue y escalado |
+
+---
 
 ## 🛡️ Sistema de Moderación
 
