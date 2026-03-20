@@ -83,13 +83,12 @@ La arquitectura de Terranova está diseñada siguiendo principios de modularidad
 
 **`Commands Service`**  
 - **Tecnología**: Slash Commands de Discord
-- **Comandos disponibles**:
+- **Algunos comandos disponibles**:
   - `ping`: Muestra latencia del bot
   - `vote`: Crea votaciones interactivas con botones
   - `giveaway`: Sistema de sorteos con participación mediante botón
   - `reroll`: Selecciona nuevo ganador de un sorteo finalizado
   - `flipcoin`: Lanza una moneda al aire
-  - `lofi`: Reproduce música lofi (conecta a canal de voz)
 
 **`Security Service`**  
 - **Funcionalidades**:
