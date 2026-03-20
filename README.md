@@ -20,9 +20,6 @@
 - [🏗️ Arquitectura](#️-arquitectura)
 - [🛡️ Sistema de Moderación](#️-sistema-de-moderación)
 - [📊 Dashboard Web](#-dashboard-web)
-- [🚀 Despliegue](#-despliegue)
-- [🔒 Seguridad](#-seguridad)
-- [📈 Estadísticas](#-estadísticas)
 - [📄 Licencia](#-licencia)
 
 ---
