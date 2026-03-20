@@ -51,102 +51,117 @@
 ---
 
 ## 🏗️ Arquitectura
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ TERRANOVA BOT │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ │
-│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────────────┐ │
-│ │ Discord │ │ WebSocket │ │ Dashboard │ │
-│ │ Gateway │◄──►│ Server │◄──►│ (HTTP/HTTPS) │ │
-│ │ (API Real) │ │ (Tiempo Real) │ │ Puerto 80/443 │ │
-│ └─────────────────┘ └─────────────────┘ └─────────────────────────┘ │
-│ │ │ │ │
-│ ▼ ▼ ▼ │
-│ ┌─────────────────────────────────────────────────────────────────────┐ │
-│ │ CORE SERVICES │ │
-│ │ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌────────────┐ │ │
-│ │ │ AutoMod │ │ Logging │ │ Commands │ │ Security │ │ │
-│ │ │ │ │ │ │ │ │ │ │ │
-│ │ │ • WordFilter │ │ • Rotación │ │ • Slash │ │ • Rate │ │ │
-│ │ │ • AntiSpam │ │ de logs │ │ Commands │ │ Limiting │ │ │
-│ │ │ • AntiLink │ │ • Niveles │ │ • Embeds │ │ • Audit │ │ │
-│ │ │ • AntiRaid │ │ (DEBUG, │ │ • Permisos │ │ Logs │ │ │
-│ │ │ • Warnings │ │ INFO, │ │ │ │ │ │ │
-│ │ │ │ │ ERROR) │ │ │ │ │ │ │
-│ │ └──────────────┘ └──────────────┘ └──────────────┘ └────────────┘ │ │
-│ └─────────────────────────────────────────────────────────────────────┘ │
-│ │
-│ ┌─────────────────────────────────────────────────────────────────────┐ │
-│ │ PERSISTENCIA │ │
-│ │ ┌──────────────┐ ┌──────────────┐ ┌──────────────────────────────┐ │ │
-│ │ │ SQLite │ │ config.json │ │ blacklist.txt │ │ │
-│ │ │ (Sorteos) │ │ (AutoMod) │ │ (Palabras prohibidas) │ │ │
-│ │ └──────────────┘ └──────────────┘ └──────────────────────────────┘ │ │
-│ └─────────────────────────────────────────────────────────────────────┘ │
-│ │
-└─────────────────────────────────────────────────────────────────────────────┘
 
-text
+La arquitectura de Terranova está diseñada siguiendo principios de modularidad, escalabilidad y separación de responsabilidades. A continuación, se detalla cada componente y su función dentro del sistema.
 
-### 🔄 Flujo de Datos
-Mensaje en Discord ──► Discord Gateway
-│
-▼
+### 1. Capa de Comunicación con Discord
 
-WebSocket Interno ◄──► AutoMod Service
-│
-├──► WordFilter ──► ¿Prohibido? ──► Eliminar
-├──► AntiSpam ──► ¿Spam? ──► Advertir
-├──► AntiLink ──► ¿Link? ──► Bloquear
-└──► AntiRaid ──► ¿Raid? ──► Kick/Ban
-│
-▼
+**`Discord Gateway`**  
+- **Tecnología**: DiscordGo (librería Go para Discord API)
+- **Función**: Establece y mantiene la conexión WebSocket con los servidores de Discord. Recibe eventos en tiempo real (mensajes, miembros, interacciones) y envía respuestas a la API de Discord.
 
-Logging Service ──► Guarda en RAM y Archivo
-│
-▼
+**`WebSocket Interno`**  
+- **Tecnología**: WebSocket nativo de Go + Fiber
+- **Función**: Canal de comunicación bidireccional entre el bot y el dashboard. Permite transmitir logs y estadísticas en tiempo real sin necesidad de polling HTTP.
 
-WebSocket Server ──► Envía logs al Dashboard
-│
-▼
+### 2. Núcleo de Servicios (Core Services)
 
-Dashboard (Browser) ◄──► Nginx (HTTPS) ◄──► API
+**`AutoMod Service`**  
+- **Módulos**:
+  - **WordFilter**: Filtro de palabras prohibidas con detección de evasiones (leet speak, reemplazos de caracteres). Soporta blacklist global y palabras personalizadas por servidor.
+  - **AntiSpam**: Monitorea la frecuencia de mensajes por usuario, aplicando límites configurables (mensajes por ventana de tiempo). Incluye sistema de cooldown para evitar advertencias repetitivas.
+  - **AntiLink**: Detecta y bloquea enlaces no permitidos. Incluye whitelist de dominios confiables y bloqueo específico de invites de Discord.
+  - **AntiRaid**: Detecta uniones masivas en intervalos de tiempo configurables. Activa slowmode automático y puede expulsar o banear miembros.
+  - **Warnings**: Sistema de advertencias progresivas con thresholds configurables (ej: 3 warns = mute, 5 warns = kick, 7 warns = ban).
 
-text
+**`Logging Service`**  
+- **Funcionalidades**:
+  - Registra eventos en memoria RAM (últimas 1000 entradas) para acceso rápido.
+  - Persiste logs en archivos con rotación automática (tamaño máximo 10MB, 5 backups, compresión opcional).
+  - Soporta 5 niveles de log: DEBUG, INFO, WARN, ERROR, FATAL.
+  - Transmite logs en tiempo real a través de WebSocket al dashboard.
 
-### 📦 Estructura de Directorios
-Terranova/
-├── internal/
-│ ├── commands/ # Comandos Slash (ping, giveaway, vote, lofi)
-│ ├── events/ # Manejadores de eventos de Discord
-│ ├── services/
-│ │ ├── moderation/ # AutoMod (wordfilter, antispam, antilink, antiraid)
-│ │ ├── logging/ # Sistema de logs con WebSocket
-│ │ └── queue/ # Gestor de colas para rate limiting
-│ ├── db/ # Base de datos SQLite (sorteos)
-│ └── security/ # Auditoría y monitoreo
-├── web/
-│ ├── handlers/ # Endpoints API (automod, logs, stats)
-│ └── static/ # HTML, CSS, JS del dashboard
-├── nginx/
-│ └── conf/ # Configuración del proxy SSL
-├── logs/ # Archivos de logs rotativos
-└── docker-compose.yml # Orquestación de contenedores
+**`Commands Service`**  
+- **Tecnología**: Slash Commands de Discord
+- **Comandos disponibles**:
+  - `ping`: Muestra latencia del bot
+  - `vote`: Crea votaciones interactivas con botones
+  - `giveaway`: Sistema de sorteos con participación mediante botón
+  - `reroll`: Selecciona nuevo ganador de un sorteo finalizado
+  - `flipcoin`: Lanza una moneda al aire
+  - `lofi`: Reproduce música lofi (conecta a canal de voz)
 
-text
+**`Security Service`**  
+- **Funcionalidades**:
+  - Rate limiting automático gestionado por DiscordGo
+  - Auditoría de comandos ejecutados
+  - Monitoreo de estado de componentes (CMD, SVC, LST)
 
-### 🧩 Componentes Principales
+### 3. Capa de Persistencia
 
-| Componente | Tecnología | Función |
-|------------|------------|---------|
-| **Bot Core** | Go + DiscordGo | Comunicación con Discord API |
-| **AutoMod** | Go | Moderación automática |
-| **Logging** | Go + WebSocket | Registro y transmisión de logs |
-| **Dashboard** | HTML/CSS/JS + Chart.js | Interfaz de administración |
-| **WebSocket Server** | Fiber + gorilla/websocket | Comunicación en tiempo real |
-| **Proxy SSL** | Nginx | Terminación HTTPS |
-| **Base de Datos** | SQLite | Persistencia de sorteos |
-| **Contenedor** | Docker + Docker Compose | Despliegue y escalado |
+**`SQLite`**  
+- **Uso**: Almacenamiento de sorteos (giveaways) para mantener estado entre reinicios.
+- **Estructura**: Tabla con ID de mensaje, canal, premio, tiempo de finalización y estado.
+
+**`config.json`**  
+- **Uso**: Configuración persistente del AutoMod (módulos activados, acciones, thresholds, whitelist, canales ignorados).
+- **Formato**: JSON con estructura jerárquica por módulo.
+
+**`blacklist.txt`**  
+- **Uso**: Lista de palabras prohibidas globales.
+- **Formato**: Una palabra por línea.
+
+### 4. Capa de Presentación (Dashboard Web)
+
+**`Dashboard Web`**  
+- **Tecnologías**: HTML5, CSS3, JavaScript, Chart.js
+- **Páginas**:
+  - **Dashboard Principal**: Visión general con gráfico de RAM, estado del sistema y componentes activos.
+  - **AutoMod**: Panel de control completo para gestionar todos los módulos, blacklist, whitelist y thresholds.
+  - **Logs**: Visualización en tiempo real con filtros por nivel y módulo.
+
+**`WebSocket Server`**  
+- **Tecnología**: Fiber + WebSocket
+- **Función**: Servidor WebSocket que distribuye logs y estadísticas a los clientes conectados. Gestiona conexiones concurrentes y buffer de logs para reconexiones.
+
+**`API REST`**  
+- **Endpoints principales**:
+  - `/api/automod/config`: GET/POST para configuración completa
+  - `/api/automod/words`: GET/POST/DELETE para gestión de blacklist
+  - `/api/automod/custom-words`: GET/POST/DELETE para palabras personalizadas
+  - `/api/automod/whitelist`: GET/POST/DELETE para dominios permitidos
+  - `/api/logs`: GET para obtener logs (fallback HTTP)
+  - `/api/logs/stats`: GET para estadísticas de logs
+  - `/api/logs/modules`: GET para lista de módulos activos
+
+### 5. Capa de Infraestructura
+
+**`Docker`**  
+- **Contenedores**:
+  - `bot`: Contenedor principal con el ejecutable de Go
+  - `nginx`: Proxy inverso para SSL y redirección HTTP a HTTPS
+- **Red**: Red interna aislada (`terranova-net`) para comunicación entre contenedores
+- **Volúmenes**: Persistencia para base de datos, logs y configuración
+
+**`Nginx Proxy SSL`**  
+- **Función**: Proxy inverso que termina las conexiones HTTPS y redirige el tráfico al contenedor del bot en el puerto 8080.
+- **Certificados**: Generados con `mkcert` para tener una CA local de confianza.
+
+**`Logs Rotativos`**  
+- **Tecnología**: Implementación en Go con rotación por tamaño (10MB)
+- **Configuración**: Mantiene hasta 5 archivos de backup, compresión opcional, eliminación por antigüedad (30 días).
+
+### 6. Flujo de Datos
+
+1. **Mensaje en Discord**: El usuario envía un mensaje en un servidor.
+2. **Discord Gateway**: Envía el evento al bot a través de WebSocket.
+3. **AutoMod Service**: Procesa el mensaje secuencialmente:
+   - AntiSpam → ¿spam? → acción configurada
+   - AntiLink → ¿link prohibido? → eliminar mensaje
+   - WordFilter → ¿palabra prohibida? → acción configurada (borrar/advertir/silenciar)
+4. **Logging Service**: Cada acción se registra con nivel INFO o WARN.
+5. **WebSocket Server**: Distribuye los logs a todos los clientes conectados.
+6. **Dashboard**: Muestra los logs en tiempo real con colores según nivel.
 
 ---
 
