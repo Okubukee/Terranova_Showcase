@@ -216,18 +216,3 @@ La arquitectura de Terranova está diseñada siguiendo principios de modularidad
 - **Diseño responsive**: Adaptable a móviles y tablets
 
 ---
-
-## 🚀 Despliegue
-
-### 📋 Requisitos
-
-- **Docker** y **Docker Compose**
-- **Raspberry Pi** (o cualquier servidor Linux)
-- **Token de Discord Bot**
-
-### ⚙️ Configuración
-
-1. **Clonar el repositorio**
-   ```bash
-   git clone https://github.com/tuusuario/Terranova_Showcase.git
-   cd Terranova_Showcase
